@@ -2647,6 +2647,7 @@ warnings.<span class="fn">filterwarnings</span>(<span class="st">'ignore'</span>
 <span class="kw">import</span> yfinance <span class="kw">as</span> yf
 
 kospi = yf.<span class="fn">download</span>(<span class="st">'^KS11'</span>, start=<span class="st">'2020-01-01'</span>, end=<span class="st">'2025-12-31'</span>)
+kospi = kospi.<span class="fn">squeeze</span>(axis=<span class="nu">1</span>, level=<span class="nu">0</span>) <span class="kw">if</span> <span class="nb">isinstance</span>(kospi.columns, pd.MultiIndex) <span class="kw">else</span> kospi
 <span class="fn">print</span>(<span class="st">f"KOSPI 데이터: {kospi.shape[0]}일, {kospi.index[0].date()} ~ {kospi.index[-1].date()}"</span>)
 
 <span class="cm"># ============================================================</span>
@@ -2791,7 +2792,7 @@ patience_cnt = <span class="nu">0</span>
 <span class="cm"># ============================================================</span>
 <span class="cm"># 6. 테스트 평가 + 백테스트</span>
 <span class="cm"># ============================================================</span>
-model.<span class="fn">load_state_dict</span>(torch.<span class="fn">load</span>(<span class="st">'kospi_lstm.pt'</span>))
+model.<span class="fn">load_state_dict</span>(torch.<span class="fn">load</span>(<span class="st">'kospi_lstm.pt'</span>, weights_only=<span class="kw">True</span>))
 model.<span class="fn">eval</span>()
 <span class="kw">with</span> torch.<span class="fn">no_grad</span>():
     test_prob = model(torch.<span class="fn">FloatTensor</span>(X_te)).<span class="fn">squeeze</span>().<span class="fn">numpy</span>()
