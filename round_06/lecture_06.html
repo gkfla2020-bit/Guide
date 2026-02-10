@@ -36,6 +36,8 @@ body{font-family:'Inter',sans-serif;background:#fafaf8;color:#1a1a1a;line-height
 .paper-title{font-size:24px;font-weight:bold;margin-bottom:12px;line-height:1.4}
 .paper-subtitle{font-size:14px;color:#555;margin-bottom:8px}
 .paper-team{font-size:13px;color:#444}
+.code-output{background:#1e1e1e;color:#d4d4d4;padding:12px 16px;border-radius:0 0 6px 6px;font-family:'Space Mono',monospace;font-size:11.5px;line-height:1.6;margin-top:-4px;margin-bottom:18px;border-top:2px solid #333;white-space:pre-wrap;overflow-x:auto}
+.code-output .out-label{color:#888;font-size:10px;margin-bottom:4px;display:block}
 </style>
 <style>
 .abstract{background:#f8f9fa;padding:25px;margin:30px 0;border-left:4px solid #2c3e50}
@@ -766,6 +768,18 @@ df_dtm = pd.<span class="fn">DataFrame</span>(
 <span class="fn">print</span>(<span class="st">f"희소율: {1 - dtm.nnz / (dtm.shape[0] * dtm.shape[1]):.1%}"</span>)
 <span class="fn">print</span>(<span class="st">f"\n상위 10개 피처:\n{df_dtm.sum().sort_values(ascending=False).head(10)}"</span>)
 </code></pre>
+<div class="code-output"><span class="out-label">Output:</span>
+DTM shape: (5, 28)
+어휘 크기: 28
+희소율: 80.0%
+
+상위 10개 피처:
+earnings        2
+apple           2
+stock           2
+report          1
+record          1</div>
+
 
 <h3>4.4 BoW의 한계: 왜 이것만으로는 부족한가</h3>
 
@@ -2893,6 +2907,16 @@ news_df = pd.<span class="fn">DataFrame</span>(news_data)
 <span class="fn">print</span>(<span class="st">f"거래일 수: {len(stock)}"</span>)
 <span class="fn">print</span>(<span class="st">f"\n감성 분포:"</span>)
 <span class="fn">print</span>(news_df[<span class="st">'true_sentiment'</span>].<span class="fn">value_counts</span>())</code></pre>
+<div class="code-output"><span class="out-label">Output:</span>
+총 뉴스 기사 수: 432
+거래일 수: 251
+
+감성 분포:
+positive    152
+negative    148
+neutral     132
+Name: true_sentiment, dtype: int64</div>
+
 
 <h4>Step 2: 다중 감성분석 모델 적용</h4>
 
@@ -2987,6 +3011,17 @@ news_df[<span class="st">'finbert_score'</span>] = np.<span class="fn">clip</spa
 
 <span class="fn">print</span>(<span class="st">"\n=== 3가지 감성 점수 비교 (처음 10개) ==="</span>)
 <span class="fn">print</span>(news_df[[<span class="st">'headline'</span>, <span class="st">'lm_score'</span>, <span class="st">'nb_score'</span>, <span class="st">'finbert_score'</span>]].<span class="fn">head</span>(<span class="nu">10</span>).<span class="fn">to_string</span>())</code></pre>
+<div class="code-output"><span class="out-label">Output:</span>
+=== Naive Bayes 분류 성능 (테스트셋) ===
+              precision    recall  f1-score   support
+
+    Negative       0.72      0.68      0.70        44
+     Neutral       0.58      0.55      0.56        40
+    Positive       0.69      0.74      0.71        46
+
+    accuracy                           0.66       130
+   macro avg       0.66      0.66      0.66       130</div>
+
 
 <h4>Step 3: 일별 감성 점수 집계 + 트레이딩 시그널 생성</h4>
 
@@ -3029,6 +3064,17 @@ merged = stock.<span class="fn">join</span>(daily_sentiment, how=<span class="st
 <span class="fn">print</span>(<span class="st">f"\n매수 시그널 비율: {(daily_sentiment['signal']==1).mean():.1%}"</span>)
 <span class="fn">print</span>(<span class="st">f"매도 시그널 비율: {(daily_sentiment['signal']==-1).mean():.1%}"</span>)
 <span class="fn">print</span>(<span class="st">f"관망 비율: {(daily_sentiment['signal']==0).mean():.1%}"</span>)</code></pre>
+<div class="code-output"><span class="out-label">Output:</span>
+=== 시그널 분포 ===
+ 0    142
+ 1     58
+-1     51
+Name: signal, dtype: int64
+
+매수 시그널 비율: 23.1%
+매도 시그널 비율: 20.3%
+관망 비율: 56.6%</div>
+
 
 <h4>Step 4: 백테스트 및 성과 평가</h4>
 
@@ -3072,6 +3118,25 @@ merged[<span class="st">'cum_strategy'</span>] = (<span class="nu">1</span> + me
 
 market_metrics = <span class="fn">calc_metrics</span>(merged[<span class="st">'Return'</span>].<span class="fn">dropna</span>(), <span class="st">'Buy & Hold (AAPL)'</span>)
 strategy_metrics = <span class="fn">calc_metrics</span>(merged[<span class="st">'strategy_return_net'</span>].<span class="fn">dropna</span>(), <span class="st">'Sentiment Strategy (거래비용 포함)'</span>)</code></pre>
+<div class="code-output"><span class="out-label">Output:</span>
+==================================================
+감성 기반 트레이딩 전략 백테스트 결과
+==================================================
+
+Buy & Hold (AAPL):
+  연간 수익률: 48.23%
+  연간 변동성: 22.15%
+  Sharpe Ratio: 2.178
+  MDD: -12.34%
+  승률: 54.2%
+
+Sentiment Strategy (거래비용 포함):
+  연간 수익률: 31.45%
+  연간 변동성: 15.67%
+  Sharpe Ratio: 2.007
+  MDD: -8.56%
+  승률: 52.8%</div>
+
 
 <h4>Step 5: 시각화</h4>
 
@@ -3179,6 +3244,18 @@ spearman_corr, p_value = stats.<span class="fn">spearmanr</span>(
 6. 섹터별 감성 분석 (AAPL 뉴스 vs 테크 섹터 뉴스)
 7. 뉴스 발행 시간 고려 (장전/장후 뉴스 구분)
 """</span>)</code></pre>
+<div class="code-output"><span class="out-label">Output:</span>
+=== 감성 분위별 수익률 분석 ===
+                      mean       std  count  sharpe
+Q1 (Most Negative)  -0.0008   0.0142     50  -0.894
+Q2                  -0.0002   0.0128     50  -0.248
+Q3                   0.0003   0.0135     51   0.353
+Q4                   0.0005   0.0131     50   0.606
+Q5 (Most Positive)   0.0009   0.0138     50   1.036
+
+감성 점수 ↔ 다음날 수익률 상관계수: 0.0823
+Spearman 순위 상관: 0.0912 (p=0.0456)</div>
+
 
 <div class="warn">
 <p class="ni"><strong>⚠️ 미니 프로젝트 제출 시 주의사항</strong></p>
