@@ -4,7 +4,7 @@
 
 ┌─────────────────────────────────────────────────┐
 │  Agent 1. 시장 분석가    │  Claude Sonnet 4      │
-│  Agent 2. 트레이더       │  Claude Opus 4.5      │
+│  Agent 2. 트레이더       │  Claude Sonnet 4      │
 │  Agent 3. 리스크 매니저  │  Claude Sonnet 4      │
 └─────────────────────────────────────────────────┘
 
@@ -12,7 +12,6 @@
 - Anthropic 프롬프트 캐싱으로 비용 최적화
 - 영어 시스템 프롬프트로 토큰 효율 극대화
 - 15분 간격 자동 매매 / 손절·익절 자동 관리
-- 예상 월 비용: ~$65 (약 88,000원)
 """
 
 import os
@@ -44,7 +43,7 @@ logger = logging.getLogger(__name__)
 TICKERS = ["KRW-BTC", "KRW-ETH", "KRW-XRP", "KRW-SOL", "KRW-DOGE", "KRW-ADA"]
 INTERVAL = "minute60"
 CANDLE_COUNT = 200
-TRADE_INTERVAL_MIN = 15
+TRADE_INTERVAL_MIN = 30
 MODEL_SONNET = "claude-sonnet-4-20250514"
 MODEL_OPUS = "claude-opus-4-20250514"
 
@@ -207,7 +206,7 @@ def agent_trader(analysis, balance, price, ticker, portfolio_summary):
         f"Avg={balance['avg_price']:.0f} PnL={pnl:.2f}%\n"
         f"Portfolio: {portfolio_summary}"
     )
-    text = call_cached(TRADER_SYSTEM, msg, 250, model=MODEL_OPUS)
+    text = call_cached(TRADER_SYSTEM, msg, 250)
     r = parse_json(text)
     if not r:
         r = {"decision": "hold", "confidence": 0, "reason": "fail", "urgency": "none"}
