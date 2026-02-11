@@ -1,0 +1,182 @@
+Chapter 16
+[ 507 ]Lessons learned and next steps
+This example applied sentiment analysis using doc2vec to product reviews rather than 
+financial documents . We selected product reviews because it is very difficult to find 
+financial text data that is large enough for training word embeddings from scratch and also 
+has useful sentiment labels or sufficient information for us to assign them labels, such as 
+asset returns, ourselves.
+While product reviews allow us to demonstrate the workflow, we need to keep in mind 
+important structural differences : product reviews are often short, informal, and specific to 
+one particular object. Many financial documents, in contrast, are longer, more formal, and 
+the target object may or may not be clearly identified. Financial news articles could concern 
+multiple targets, and while corporate disclosures may have a clear source, they may also 
+discuss competitors. An analyst report, for instance, may also discuss both positive and 
+negative aspects of the same object or topic.
+In short, the interpretation of sentiment expressed in financial documents often requires a 
+more sophisticated, nuanced, and granular approach that builds up an understanding of 
+the content's meaning from different aspects. Decision makers also often care to understand 
+how a model arrives at its conclusion.
+These challenges have not yet been solved and remain an area of very active research, 
+complicated not least by the scarcity of suitable data sources. However, recent 
+breakthroughs that significantly boosted performance on various NLP tasks since 2018 
+suggest that financial sentiment analysis may also become more robust in the coming years. 
+We will turn to these innovations next.
+New frontiers – pretrained transformer models
+Word2vec and GloVe embeddings capture more semantic information than the bag-of-
+words approach. However, they allow only a single fixed-length representation of each 
+token that does not differentiate between context-specific usages. To address unsolved 
+problems such as multiple meanings for the same word, called polysemy , several new 
+models have emerged that build on the attention mechanism  designed to learn more 
+contextualized word embeddings (Vaswani et al., 2017). The key characteristics of these 
+models are as follows:
+• The use of bidirectional language models  that process text both left-to-right and 
+right-to-left for a richer context representation
+• The use of semi-supervised pretraining on a large generic corpus to learn universal 
+language aspects in the form of embeddings and network weights that can be used 
+and fine-tuned for specific tasks (a form of transfer learning  that we will discuss in 
+more detail in Chapter 18 , CNNs for Financial Time Series and Satellite Images )
+
+Word Embeddings for Earnings Calls and SEC Filings
+[ 508 ]In this section, we briefly describe the attention mechanism, outline how the recent 
+transformer models—starting with Bidirectional Encoder Representation from 
+Transformers  (BERT )—use it to improve performance on key NLP tasks, reference 
+several sources for pretrained language models, and explain how to use them for financial 
+sentiment analysis.
+Attention is all you need 
+The attention mechanism  explicitly models the relationships between words in a sentence 
+to better incorporate the context. It was first applied to machine translation (Bahdanau, 
+Cho, and Bengio, 2016), but has since become integral to neural language models for a wide 
+variety of tasks.
+Until 2017, recurrent neural networks  (RNNs ), which sequentially process text left-to-right 
+or right-to-left, represented the state of the art for NLP tasks like translation. Google, for 
+example, has employed such a model in production since late 2016. Sequential processing 
+implies several steps to semantically connect words at distant locations and precludes 
+parallel processing, which greatly speeds up computation on modern, specialized hardware 
+like GPUs. (For more information on RNNs, refer to Chapter 19 , RNNs for Multivariate Time 
+Series and Sentiment Analysis .)
+In contrast, the Transformer  model, introduced in the seminal paper Attention is all you need  
+(Vaswani et al., 2017), requires only a constant number of steps to identify semantically 
+related words. It relies on a self-attention mechanism that captures links between all words 
+in a sentence, regardless of their relative position. The model learns the representation of a 
+word by assigning an attention score to every other word in the sentence that determines 
+how much each of the other words should contribute to the representation. These scores 
+then inform a weighted average of all words' representations, which is fed into a fully 
+connected network to generate a new representation for the target word.
+The Transformer model uses an encoder-decoder architecture with several layers, each 
+of which uses several attention mechanisms (called heads ) in parallel. It yielded large 
+performance improvements on various translation tasks and, more importantly, inspired 
+a wave of new research into neural language models addressing a broader range of tasks. 
+The resources linked on GitHub contain various excellent visual explanations of how the 
+attention mechanism works, so we won't go into more detail here.
+
+Chapter 16
+[ 509 ]BERT – towards a more universal language model
+In 2018, Google released the BERT  model, which stands for Bidirectional Encoder 
+Representations from Transformers  (Devlin et al., 2019). In a major breakthrough for NLP 
+research, it achieved groundbreaking results on eleven natural language understanding 
+tasks, ranging from question answering and named entity recognition to paraphrasing 
+and sentiment analysis, as measured by the General Language Understanding Evaluation  
+(GLUE ) benchmark (see GitHub for links to task descriptions and a leaderboard).
+The new ideas introduced by BERT unleashed a flurry of new research that produced 
+dozens of improvements that soon surpassed non-expert humans on the GLUE tasks and 
+led to the more challenging SuperGLUE  benchmark designed by DeepMind (Wang et al., 
+2019). As a result, 2018 is now considered a turning point for NLP research; both Google 
+Search and Microsoft's Bing are now using variations of BERT to interpret user queries and 
+provide more accurate results.
+We will briefly outline BERT's key innovations and provide indications on how to get 
+started using it and its subsequent enhancements with one of several open source libraries 
+providing pretrained models.
+Key innovations – deeper attention and pretraining
+The BERT model builds on two key ideas , namely, the transformer architecture  described 
+in the previous section and unsupervised pretraining  so that it doesn't need to be trained 
+from scratch for each new task; rather, its weights are fine-tuned:
+• BERT takes the attention mechanism  to a new (deeper) level by using 12 or 24 
+layers, depending on the architecture, each with 12 or 16 attention heads. This 
+results in up to 24 × 16 = 384 attention mechanisms to learn context-specific 
+embeddings.
+• BERT uses unsupervised, bidirectional pretraining  to learn its weights in advance 
+on two tasks: masked language modeling  (predicting a missing word given the left 
+and right context) and next sentence prediction  (predicting whether one sentence 
+follows another).
+Context-free  models such as word2vec or GloVe generate a single embedding for each 
+word in the vocabulary: the word "bank" would have the same context-free representation 
+in "bank account" and "bank of the river." In contrast, BERT learns to represent each 
+word based on the other words in the sentence. As a bidirectional model , BERT is able to 
+represent the word "bank" in the sentence "I accessed the bank account," not only based on 
+"I accessed the" as a unidirectional contextual model, but also based on "account."
+
+Word Embeddings for Earnings Calls and SEC Filings
+[ 510 ]BERT and its successors can be pretrained on a generic corpus  like Wikipedia before 
+adapting its final layers to a specific task and fine-tuning its weights . As a result, you can 
+use large-scale, state-of-the-art models with billions of parameters, while only incurring 
+a few hours rather than days or weeks of training costs. Several libraries offer such 
+pretrained models that you can build on to develop a custom sentiment classifier for your 
+dataset of choice.
+Using pretrained state-of-the-art models
+The recent NLP breakthroughs described in this section have shown how to acquire 
+linguistic knowledge from unlabeled text with networks large enough to represent the 
+long tail of rare usage phenomena. The resulting Transformer architectures make fewer 
+assumptions about word order and context; instead, they learn a much more subtle 
+understanding of language from very large amounts of data, using hundreds of millions or 
+even billions of parameters.
+We will highlight several libraries that make pretrained networks, as well as excellent 
+Python tutorials available.
+The Hugging Face Transformers library
+Hugging Face is a US start-up developing chatbot applications designed to offer 
+personalized AI-powered communication. It raised $15 million in late 2019 to further 
+develop its very successful open source NLP library, Transformers. 
+The library provides general-purpose architectures for natural language understanding 
+and generation with more than 32 pretrained models in more than 100 languages and deep 
+interoperability between TensorFlow 2 and PyTorch. It has excellent documentation.
+The spacy-transformers library includes wrappers to facilitate the inclusion of the 
+pretrained transformer models in a spaCy pipeline. Refer to the reference links on GitHub 
+for more information.
+AllenNLP
+AllenNLP is built and maintained by the Allen Institute for AI, started by Microsoft 
+cofounder Paul Allen, in close collaboration with researchers at the University of 
+Washington. It has been designed as a research library for developing state-of-the-art deep 
+learning models on a wide variety of linguistic tasks, built on PyTorch.
+It offers solutions for key tasks from question answering to sentence annotation, including 
+reading comprehension, named entity recognition, and sentiment analysis. A pretrained 
+RoBERTa  model (a more robust version of BERT; Liu et al., 2019) achieves over 95 percent 
+accuracy on the Stanford sentiment treebank and can be used with just a few lines of code 
+(see links to the documentation on GitHub).
+
+Chapter 16
+[ 511 ]Trading on text data – lessons learned and next steps
+As highlighted at the end of the section Sentiment analysis using doc2vec embeddings , there 
+are important structural characteristics of financial documents that often complicate their 
+interpretation and undermine simple dictionary-based methods.
+In a recent survey of financial sentiment analysis, Man, Luo, and Lin (2019) found that 
+most existing approaches only identify high-level polarities, such as positive, negative, or 
+neutral. However, practical applications that lead to real decisions typically require a more 
+nuanced and transparent analysis. In addition, the lack of large financial text datasets with 
+relevant labels limits the potential for using traditional machine learning methods or neural 
+networks for sentiment analysis.
+The pretraining approach just described, which, in principle, yields a deeper understanding 
+of textual information, thus offers substantial promise. However, most applied research 
+using transformers has focused on NLP tasks such as translation, question answering, logic, 
+or dialog systems. Applications in relation to financial data are still in their infancy (see, 
+for example, Araci 2019). This is likely to change soon given the availability of pretrained 
+models and their potential to extract more valuable information from financial text data.
+Summary
+In this chapter, we discussed a new way of generating text features that use shallow neural 
+networks for unsupervised machine learning. We saw how the resulting word embeddings 
+capture interesting semantic aspects beyond the meaning of individual tokens by capturing 
+some of the context in which they are used. We also covered how to evaluate the quality of 
+word vectors using analogies and linear algebra.
+We used Keras to build the network architecture that produces these features and applied 
+the more performant Gensim implementation to financial news and SEC filings. Despite the 
+relatively small datasets, the word2vec embeddings did capture meaningful relationships. 
+We also demonstrated how appropriate labeling with stock price data can form the basis 
+for supervised learning.
+We applied the doc2vec algorithm, which produces a document rather than token vectors, 
+to build a sentiment classifier based on Yelp business reviews. While this is unlikely to yield 
+tradeable signals, it illustrates the process of how to extract features from relevant text data 
+and train a model to predict an outcome that may be informative for a trading strategy.
+Finally, we outlined recent research breakthroughs that promise to yield more powerful 
+natural language models due to the availability of pretrained architectures that only require 
+fine-tuning. Applications to financial data, however, are still at the research frontier.
+In the next chapter, we will dive into the final part of this book, which covers how various 
+deep learning architectures can be useful for algorithmic trading.
+
