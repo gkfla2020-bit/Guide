@@ -18,26 +18,7 @@ import os
 import json
 import time
 import logging
-from datetime import datetime                                                                                                                                                             
-                                                                                                                                                                                                                                               
-                                                                                                                                                                                                                                               
-                                                                                                ┌────┤ Daemons using outdated libraries ├─────┐                                                                                                
-                                                                                                │                                             │                                                                                                
-                                                                                                │                                             │                                                                                                
-                                                                                                │ Which services should be restarted?         │                                                                                                
-                                                                                                │                                             │                                                                                                
-                                                                                                │    [ ] dbus.service                         │                                                                                                
-                                                                                                │    [ ] networkd-dispatcher.service          │                                                                                                
-                                                                                                │    [*] polkit.service                       │                                                                                                
-                                                                                                │    [ ] unattended-upgrades.service          │                                                                                                
-                                                                                                │                                             │                                                                                                
-                                                                                                │                                             │                                                                                                
-                                                                                                │          <Ok>              <Cancel>         │                                                                                                
-                                                                                                │                                             │                                                                                                
-                                                                                                └─────────────────────────────────────────────┘                                                                                                
-                                                                                                                                                                                                                                               
-                                                                                                                                                                                                                                               
-                                                                                                                                                           
+from datetime import datetime
 from dotenv import load_dotenv
 import pyupbit
 import pandas as pd
